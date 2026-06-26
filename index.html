@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Circle Game</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f4f4f9;
+            color: #333;
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        .circles-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        .circle-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 50px;
+        }
+        .circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1);
+            transition: background 0.3s ease;
+        }
+        .circle.red { background-color: #ef4444; }
+        .circle.green { background-color: #22c55e; }
+        
+        .bit-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            visibility: hidden;
+        }
+        .bit-value.visible {
+            visibility: visible;
+        }
+
+        .toggle-container {
+            margin: 15px 0 25px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #3b82f6;
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+        
+        .controls {
+            margin: 20px 0;
+        }
+        input[type="number"] {
+            padding: 10px;
+            font-size: 18px;
+            width: 100px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            outline: none;
+        }
+        input:focus { border-color: #3b82f6; }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        button:hover { background: #2563eb; }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .feedback {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 15px 0;
+            min-height: 30px;
+        }
+        .correct { color: #22c55e; }
+        .incorrect { color: #ef4444; }
+        
+        .streak {
+            font-size: 18px;
+            color: #4b5563;
+            margin-bottom: 10px;
+        }
+        
+        .table-container {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 8px 12px;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background: #f9fafb;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        tr:hover { background: #fcfcfd; }
+    </style>
+</head>
+<body>
+
+    <h1>Binary Circle Game</h1>
+    <p>Green = 1, Red = 0. Translate the 5-bit binary code into a decimal number!</p>
+
+    <div class="card">
+        <div class="streak">Current Streak: <span id="streak-count">0</span> 🔥</div>
+        
+        <div class="toggle-container">
+            <span>Show Bit Values</span>
+            <label class="switch">
+                <input type="checkbox" id="value-toggle" onchange="toggleBitValues()">
+                <span class="slider"></span>
+            </label>
+        </div>
+        
+        <div class="circles-container" id="circles-box">
+            <!-- Circles injected here -->
+        </div>
+
+        <div class="controls">
+            <input type="number" id="user-input" min="0" max="31" placeholder="?" autocomplete="off">
+            <button id="action-btn" onclick="handleSubmit()">Check</button>
+        </div>
+
+        <div class="feedback" id="feedback-box"></div>
+    </div>
+
+    <h3>Your Last 100 Games Accuracy</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Binary</th>
+                    <th>Decimal</th>
+                    <th>Accuracy (%)</th>
+                    <th>Attempts</th>
+                </tr>
+            </thead>
+            <tbody id="stats-body">
+                <!-- Table rows injected here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let currentDecimal = 0;
+        let currentStreak = 0;
+        let isAnswered = false;
+        let nextTimeout = null;
+        let history = []; 
+        const stats = Array.from({ length: 32 }, (_, i) => ({ val: i, correctCount: 0, totalCount: 0 }));
+        
+        // Bit place values for a 5-bit number
+        const bitValues = [16, 8, 4, 2, 1];
+
+        function generateQuestion() {
+            if (nextTimeout) clearTimeout(nextTimeout);
+            
+            let weights = new Array(32).fill(1);
+            
+            stats.forEach(stat => {
+                if (stat.totalCount > 0) {
+                    let accuracy = stat.correctCount / stat.totalCount;
+                    weights[stat.val] = Math.max(0.2, (1 - accuracy) * 5);
+                } else {
+                    weights[stat.val] = 3;
+                }
+            });
+
+            let totalWeight = weights.reduce((a, b) => a + b, 0);
+            let randomNum = Math.random() * totalWeight;
+            let chosenValue = 0;
+            
+            for (let i = 0; i < 32; i++) {
+                randomNum -= weights[i];
+                if (randomNum <= 0) {
+                    chosenValue = i;
+                    break;
+                }
+            }
+
+            currentDecimal = chosenValue;
+            isAnswered = false;
+            
+            const container = document.getElementById('circles-box');
+            container.innerHTML = '';
+            
+            let binaryStr = currentDecimal.toString(2).padStart(5, '0');
+            const showValues = document.getElementById('value-toggle').checked;
+            
+            binaryStr.split('').forEach((bit, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'circle-wrapper';
+
+                const circle = document.createElement('div');
+                circle.className = `circle ${bit === '1' ? 'green' : 'red'}`;
+                
+                const valLabel = document.createElement('div');
+                valLabel.className = `bit-value ${showValues ? 'visible' : ''}`;
+                valLabel.innerText = bitValues[index];
+
+                wrapper.appendChild(circle);
+                wrapper.appendChild(valLabel);
+                container.appendChild(wrapper);
+            });
+
+            const inputEl = document.getElementById('user-input');
+            inputEl.value = '';
+            inputEl.disabled = false;
+            inputEl.focus();
+            
+            document.getElementById('feedback-box').innerHTML = '';
+            
+            const btn = document.getElementById('action-btn');
+            btn.innerText = 'Check';
+            btn.disabled = false;
+        }
+
+        function handleSubmit() {
+            if (isAnswered) return;
+
+            const inputEl = document.getElementById('user-input');
+            const userAns = parseInt(inputEl.value, 10);
+
+            if (isNaN(userAns)) {
+                alert('Please enter a number!');
+                return;
+            }
+
+            isAnswered = true;
+            inputEl.disabled = true;
+
+            const feedbackEl = document.getElementById('feedback-box');
+            const isCorrect = (userAns === currentDecimal);
+
+            updateHistory(currentDecimal, isCorrect);
+
+            if (isCorrect) {
+                currentStreak++;
+                feedbackEl.className = "feedback correct";
+                feedbackEl.innerHTML = `✓ Correct!`;
+            } else {
+                currentStreak = 0;
+                feedbackEl.className = "feedback incorrect";
+                feedbackEl.innerHTML = `✗ Incorrect. The correct number was ${currentDecimal}.`;
+            }
+
+            document.getElementById('streak-count').innerText = currentStreak;
+            updateStatsTable();
+
+            // Disable button and prepare the auto-advance sequence
+            const btn = document.getElementById('action-btn');
+            btn.innerText = 'Loading...';
+            btn.disabled = true;
+
+            // Auto-advance to next question after 1.5 seconds
+            nextTimeout = setTimeout(() => {
+                generateQuestion();
+            }, 1);
+        }
+
+        function toggleBitValues() {
+            const showValues = document.getElementById('value-toggle').checked;
+            const labels = document.querySelectorAll('.bit-value');
+            labels.forEach(label => {
+                if (showValues) {
+                    label.classList.add('visible');
+                } else {
+                    label.classList.remove('visible');
+                }
+            });
+        }
+
+        function updateHistory(val, isCorrect) {
+            history.push({ val: val, correct: isCorrect });
+            if (history.length > 100) {
+                history.shift();
+            }
+
+            for(let i=0; i<32; i++) {
+                stats[i].correctCount = 0;
+                stats[i].totalCount = 0;
+            }
+
+            history.forEach(round => {
+                stats[round.val].totalCount++;
+                if (round.correct) {
+                    stats[round.val].correctCount++;
+                }
+            });
+        }
+
+        function updateStatsTable() {
+            const tbody = document.getElementById('stats-body');
+            tbody.innerHTML = '';
+
+            stats.forEach(stat => {
+                let binaryStr = stat.val.toString(2).padStart(5, '0');
+                let pct = stat.totalCount === 0 ? '-' : Math.round((stat.correctCount / stat.totalCount) * 100) + '%';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><code>${binaryStr}</code></td>
+                    <td>${stat.val}</td>
+                    <td style="font-weight: bold; color: ${pct === '-' ? '#9ca3af' : (parseInt(pct) < 60 ? '#ef4444' : '#22c55e')}">${pct}</td>
+                    <td>${stat.totalCount}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        document.getElementById('user-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                handleSubmit();
+            }
+        });
+
+        // Bootstrap Game
+        generateQuestion();
+        updateStatsTable();
+    </script>
+</body>
+</html>
