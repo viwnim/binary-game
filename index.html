@@ -3,263 +3,400 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Binary Circle Game</title>
+    <title>Binary Circle Dashboard</title>
     <style>
+        :root {
+            --bg-main: #f4f4f9;
+            --bg-card: #ffffff;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #333333;
+            --text-muted: #6b7280;
+            --success: #22c55e;
+            --error: #ef4444;
+            --border: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f4f4f9;
-            color: #333;
-            max-width: 700px;
-            margin: 40px auto;
-            padding: 20px;
-            text-align: center;
+            background: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
         }
+
+        /* Left Navigation Sidebar */
+        .sidebar {
+            width: 240px;
+            background: #1e293b;
+            color: #ffffff;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+        }
+
+        .sidebar h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #f8fafc;
+            letter-spacing: 0.5px;
+        }
+
+        .menu-btn {
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            padding: 12px 15px;
+            text-align: left;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            width: 100%;
+            margin: 0;
+        }
+
+        .menu-btn:hover {
+            background: #334155;
+            color: #f8fafc;
+        }
+
+        .menu-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        /* Main Content Layout */
+        .main-content {
+            margin-left: 240px;
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+
         .card {
-            background: white;
+            background: var(--bg-card);
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             margin-bottom: 30px;
         }
+
+        /* Game Component Layouts */
         .circles-container {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin: 25px 0;
+            gap: 12px;
         }
+
         .circle-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
-            width: 50px;
+            gap: 6px;
+            width: 44px;
         }
+
         .circle {
-            width: 50px;
-            height: 50px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1);
             transition: background 0.3s ease;
         }
-        .circle.red { background-color: #ef4444; }
-        .circle.green { background-color: #22c55e; }
+
+        .circle.red { background-color: var(--error); }
+        .circle.green { background-color: var(--success); }
         
         .bit-value {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
-            color: #6b7280;
+            color: var(--text-muted);
             visibility: hidden;
         }
         .bit-value.visible {
             visibility: visible;
         }
 
+        /* Controls & Inputs */
         .toggle-container {
-            margin: 15px 0 25px 0;
+            margin-bottom: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 10px;
+            font-size: 14px;
+            color: var(--text-muted);
         }
+
         .switch {
             position: relative;
             display: inline-block;
-            width: 50px;
-            height: 26px;
+            width: 46px;
+            height: 22px;
         }
-        .switch input { 
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+        .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute;
             cursor: pointer;
             top: 0; left: 0; right: 0; bottom: 0;
             background-color: #ccc;
-            transition: .3s;
-            border-radius: 34px;
+            transition: .2s;
+            border-radius: 22px;
         }
         .slider:before {
             position: absolute;
             content: "";
-            height: 18px;
-            width: 18px;
+            height: 14px;
+            width: 14px;
             left: 4px;
             bottom: 4px;
             background-color: white;
-            transition: .3s;
+            transition: .2s;
             border-radius: 50%;
         }
-        input:checked + .slider {
-            background-color: #3b82f6;
-        }
-        input:checked + .slider:before {
-            transform: translateX(24px);
-        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(24px); }
         
         .controls {
             margin: 20px 0;
         }
-        input[type="number"] {
-            padding: 10px;
+
+        input[type="text"], input[type="number"] {
+            padding: 10px 14px;
             font-size: 18px;
-            width: 100px;
             border: 2px solid #ddd;
             border-radius: 6px;
             text-align: center;
             outline: none;
+            transition: border-color 0.2s;
         }
-        input:focus { border-color: #3b82f6; }
+        input[type="text"]:focus, input[type="number"]:focus { border-color: var(--primary); }
         
-        button {
-            padding: 10px 20px;
+        input[type="number"] { width: 100px; }
+        input[type="text"] { width: 320px; letter-spacing: 2px; }
+
+        button.action-btn {
+            padding: 10px 24px;
             font-size: 18px;
-            background: #3b82f6;
+            background: var(--primary);
             color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
+            font-weight: 500;
             margin-left: 10px;
+            transition: background 0.2s;
         }
-        button:hover { background: #2563eb; }
-        button:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-        }
+        button.action-btn:hover { background: var(--primary-hover); }
+        button.action-btn:disabled { background: #9ca3af; cursor: not-allowed; }
         
         .feedback {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
-            margin: 15px 0;
-            min-height: 30px;
+            margin-top: 15px;
+            min-height: 26px;
         }
-        .correct { color: #22c55e; }
-        .incorrect { color: #ef4444; }
+        .correct { color: var(--success); }
+        .incorrect { color: var(--error); }
         
         .streak {
-            font-size: 18px;
+            font-size: 16px;
+            font-weight: 600;
             color: #4b5563;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* Multi Mode Grid Styles */
+        .multi-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+        .multi-row:last-child { border-bottom: none; }
+        .row-label {
+            font-weight: bold;
+            color: var(--text-muted);
+            width: 60px;
+            text-align: left;
+        }
+        .multi-feedback-indicator {
+            font-size: 18px;
+            width: 30px;
+            text-align: right;
         }
         
+        /* High Accuracy Stats Section */
         .table-container {
-            max-height: 250px;
+            max-height: 230px;
             overflow-y: auto;
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--border);
             border-radius: 8px;
             background: white;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        th, td {
-            padding: 8px 12px;
-            text-align: center;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        th {
-            background: #f9fafb;
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--border); }
+        th { background: #f9fafb; position: sticky; top: 0; z-index: 1; }
         tr:hover { background: #fcfcfd; }
     </style>
 </head>
 <body>
 
-    <h1>Binary Circle Game</h1>
-    <p>Green = 1, Red = 0. Translate the 5-bit binary code into a decimal number!</p>
+    <!-- Left Menu Bar -->
+    <div class="sidebar">
+        <h2>Binary Game</h2>
+        <button class="menu-btn active" onclick="switchTab('single-pane', this)">Single Mode</button>
+        <button class="menu-btn" onclick="switchTab('multi-pane', this)">Multi Mode (6 Rows)</button>
+    </div>
 
-    <div class="card">
-        <div class="streak">Current Streak: <span id="streak-count">0</span> 🔥</div>
+    <!-- Central Content Area -->
+    <div class="main-content">
         
-        <div class="toggle-container">
-            <span>Show Bit Values</span>
+        <!-- GLOBAL TOGGLE FOR VALUES (Affects both modes instantly) -->
+        <div class="toggle-container" style="justify-content: flex-end;">
+            <span>Show Bit Values (16, 8, 4, 2, 1)</span>
             <label class="switch">
-                <input type="checkbox" id="value-toggle" onchange="toggleBitValues()">
+                <input type="checkbox" id="global-value-toggle" onchange="handleGlobalToggle()">
                 <span class="slider"></span>
             </label>
         </div>
-        
-        <div class="circles-container" id="circles-box">
-            <!-- Circles injected here -->
+
+        <!-- TAB 1: SINGLE MODE -->
+        <div id="single-pane" class="tab-content active">
+            <h1>Single Binary Row</h1>
+            <p class="subtitle">Convert the sequence into a decimal value. Automatically shifts to next question on pass/fail.</p>
+            
+            <div class="card">
+                <div class="streak">Current Streak: <span id="streak-count">0</span> 🔥</div>
+                <div class="circles-container" id="single-circles-box"></div>
+                <div class="controls">
+                    <input type="number" id="single-user-input" min="0" max="31" placeholder="?" autocomplete="off">
+                    <button id="single-action-btn" class="action-btn" onclick="handleSingleSubmit()">Check</button>
+                </div>
+                <div class="feedback" id="single-feedback-box"></div>
+            </div>
         </div>
 
-        <div class="controls">
-            <input type="number" id="user-input" min="0" max="31" placeholder="?" autocomplete="off">
-            <button id="action-btn" onclick="handleSubmit()">Check</button>
+        <!-- TAB 2: MULTI MODE (6 Rows) -->
+        <div id="multi-pane" class="tab-content">
+            <h1>Multi-Row Challenge</h1>
+            <p class="subtitle">Enter 6 separate decimal answers corresponding to rows 1-6, **separated by a space** (e.g., 5 12 0 31 18 3).</p>
+            
+            <div class="card">
+                <div id="multi-rows-container">
+                    <!-- 6 separate rows dynamically built here -->
+                </div>
+                <div class="controls">
+                    <input type="text" id="multi-user-input" placeholder="e.g. 14 23 8 0 31 19" autocomplete="off">
+                    <button id="multi-action-btn" class="action-btn" onclick="handleMultiSubmit()">Check All</button>
+                </div>
+                <div class="feedback" id="multi-feedback-box"></div>
+            </div>
         </div>
 
-        <div class="feedback" id="feedback-box"></div>
-    </div>
-
-    <h3>Your Last 100 Games Accuracy</h3>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Binary</th>
-                    <th>Decimal</th>
-                    <th>Accuracy (%)</th>
-                    <th>Attempts</th>
-                </tr>
-            </thead>
-            <tbody id="stats-body">
-                <!-- Table rows injected here -->
-            </tbody>
-        </table>
+        <!-- HISTORIC METRICS PANEL (Shared across modes) -->
+        <h3>Your Dynamic Performance Accuracy</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Binary</th>
+                        <th>Decimal</th>
+                        <th>Accuracy (%)</th>
+                        <th>Attempts</th>
+                    </tr>
+                </thead>
+                <tbody id="stats-body"></tbody>
+            </table>
+        </div>
     </div>
 
     <script>
+        // State Machine Engines
         let currentDecimal = 0;
         let currentStreak = 0;
-        let isAnswered = false;
-        let nextTimeout = null;
+        let isSingleAnswered = false;
+        let singleTimeout = null;
+
+        // Multi-mode unique state track engine
+        let multiDecimals = []; 
+        let isMultiAnswered = false;
+
         let history = []; 
         const stats = Array.from({ length: 32 }, (_, i) => ({ val: i, correctCount: 0, totalCount: 0 }));
-        
-        // Bit place values for a 5-bit number
         const bitValues = [16, 8, 4, 2, 1];
 
-        function generateQuestion() {
-            if (nextTimeout) clearTimeout(nextTimeout);
+        // Pane Interface Routing Switch
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(pane => pane.classList.remove('active'));
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
             
-            let weights = new Array(32).fill(1);
-            
-            stats.forEach(stat => {
-                if (stat.totalCount > 0) {
-                    let accuracy = stat.correctCount / stat.totalCount;
-                    weights[stat.val] = Math.max(0.2, (1 - accuracy) * 5);
-                } else {
-                    weights[stat.val] = 3;
-                }
-            });
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
 
-            let totalWeight = weights.reduce((a, b) => a + b, 0);
-            let randomNum = Math.random() * totalWeight;
-            let chosenValue = 0;
-            
-            for (let i = 0; i < 32; i++) {
-                randomNum -= weights[i];
-                if (randomNum <= 0) {
-                    chosenValue = i;
-                    break;
-                }
+            if (tabId === 'multi-pane' && multiDecimals.length === 0) {
+                generateMultiQuestion();
             }
+        }
 
-            currentDecimal = chosenValue;
-            isAnswered = false;
-            
-            const container = document.getElementById('circles-box');
-            container.innerHTML = '';
-            
-            let binaryStr = currentDecimal.toString(2).padStart(5, '0');
-            const showValues = document.getElementById('value-toggle').checked;
-            
+        // Global Flag Management Engine for Visibility Ratios
+        function handleGlobalToggle() {
+            const showValues = document.getElementById('global-value-toggle').checked;
+            document.querySelectorAll('.bit-value').forEach(label => {
+                if (showValues) label.classList.add('visible');
+                else label.classList.remove('visible');
+            });
+        }
+
+        function createRowStructure(decimalValue, rowIndex) {
+            let binaryStr = decimalValue.toString(2).padStart(5, '0');
+            const showValues = document.getElementById('global-value-toggle').checked;
+
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'multi-row';
+
+            const label = document.createElement('div');
+            label.className = 'row-label';
+            label.innerText = `Row ${rowIndex}:`;
+            rowDiv.appendChild(label);
+
+            const circlesContainer = document.createElement('div');
+            circlesContainer.className = 'circles-container';
+
             binaryStr.split('').forEach((bit, index) => {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'circle-wrapper';
@@ -273,38 +410,87 @@
 
                 wrapper.appendChild(circle);
                 wrapper.appendChild(valLabel);
+                circlesContainer.appendChild(wrapper);
+            });
+            rowDiv.appendChild(circlesContainer);
+
+            const feedbackIndicator = document.createElement('div');
+            feedbackIndicator.className = 'multi-feedback-indicator';
+            feedbackIndicator.id = `multi-indicator-${rowIndex - 1}`;
+            feedbackIndicator.innerText = '';
+            rowDiv.appendChild(feedbackIndicator);
+
+            return rowDiv;
+        }
+
+        // --- SINGLE MODE LOGIC PIPELINES ---
+        function generateSingleQuestion() {
+            if (singleTimeout) clearTimeout(singleTimeout);
+            
+            let weights = new Array(32).fill(1);
+            stats.forEach(stat => {
+                if (stat.totalCount > 0) {
+                    let accuracy = stat.correctCount / stat.totalCount;
+                    weights[stat.val] = Math.max(0.2, (1 - accuracy) * 5);
+                } else {
+                    weights[stat.val] = 3;
+                }
+            });
+
+            let totalWeight = weights.reduce((a, b) => a + b, 0);
+            let randomNum = Math.random() * totalWeight;
+            let chosenValue = 0;
+            for (let i = 0; i < 32; i++) {
+                randomNum -= weights[i];
+                if (randomNum <= 0) { chosenValue = i; break; }
+            }
+
+            currentDecimal = chosenValue;
+            isSingleAnswered = false;
+            
+            const container = document.getElementById('single-circles-box');
+            container.innerHTML = '';
+            
+            let binaryStr = currentDecimal.toString(2).padStart(5, '0');
+            const showValues = document.getElementById('global-value-toggle').checked;
+            
+            binaryStr.split('').forEach((bit, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'circle-wrapper';
+                const circle = document.createElement('div');
+                circle.className = `circle ${bit === '1' ? 'green' : 'red'}`;
+                const valLabel = document.createElement('div');
+                valLabel.className = `bit-value ${showValues ? 'visible' : ''}`;
+                valLabel.innerText = bitValues[index];
+
+                wrapper.appendChild(circle);
+                wrapper.appendChild(valLabel);
                 container.appendChild(wrapper);
             });
 
-            const inputEl = document.getElementById('user-input');
+            const inputEl = document.getElementById('single-user-input');
             inputEl.value = '';
             inputEl.disabled = false;
             inputEl.focus();
             
-            document.getElementById('feedback-box').innerHTML = '';
-            
-            const btn = document.getElementById('action-btn');
+            document.getElementById('single-feedback-box').innerHTML = '';
+            const btn = document.getElementById('single-action-btn');
             btn.innerText = 'Check';
             btn.disabled = false;
         }
 
-        function handleSubmit() {
-            if (isAnswered) return;
-
-            const inputEl = document.getElementById('user-input');
+        function handleSingleSubmit() {
+            if (isSingleAnswered) return;
+            const inputEl = document.getElementById('single-user-input');
             const userAns = parseInt(inputEl.value, 10);
 
-            if (isNaN(userAns)) {
-                alert('Please enter a number!');
-                return;
-            }
+            if (isNaN(userAns)) { alert('Please enter a number!'); return; }
 
-            isAnswered = true;
+            isSingleAnswered = true;
             inputEl.disabled = true;
 
-            const feedbackEl = document.getElementById('feedback-box');
+            const feedbackEl = document.getElementById('single-feedback-box');
             const isCorrect = (userAns === currentDecimal);
-
             updateHistory(currentDecimal, isCorrect);
 
             if (isCorrect) {
@@ -320,34 +506,105 @@
             document.getElementById('streak-count').innerText = currentStreak;
             updateStatsTable();
 
-            // Disable button and prepare the auto-advance sequence
-            const btn = document.getElementById('action-btn');
+            const btn = document.getElementById('single-action-btn');
             btn.innerText = 'Loading...';
             btn.disabled = true;
 
-            // Auto-advance to next question after 1.5 seconds
-            nextTimeout = setTimeout(() => {
-                generateQuestion();
-            }, 1);
+            singleTimeout = setTimeout(() => { generateSingleQuestion(); }, 1500);
         }
 
-        function toggleBitValues() {
-            const showValues = document.getElementById('value-toggle').checked;
-            const labels = document.querySelectorAll('.bit-value');
-            labels.forEach(label => {
-                if (showValues) {
-                    label.classList.add('visible');
+        // --- MULTI MODE LOGIC PIPELINES ---
+        function generateMultiQuestion() {
+            multiDecimals = [];
+            isMultiAnswered = false;
+            
+            const container = document.getElementById('multi-rows-container');
+            container.innerHTML = '';
+
+            // Generate 6 independent target numbers
+            for (let i = 0; i < 6; i++) {
+                let randomVal = Math.floor(Math.random() * 32);
+                multiDecimals.push(randomVal);
+                
+                let rowElement = createRowStructure(randomVal, i + 1);
+                container.appendChild(rowElement);
+            }
+
+            const inputEl = document.getElementById('multi-user-input');
+            inputEl.value = '';
+            inputEl.disabled = false;
+            inputEl.focus();
+
+            document.getElementById('multi-feedback-box').className = "feedback";
+            document.getElementById('multi-feedback-box').innerHTML = '';
+            
+            const btn = document.getElementById('multi-action-btn');
+            btn.innerText = 'Check All';
+        }
+
+        function handleMultiSubmit() {
+            const btn = document.getElementById('multi-action-btn');
+            
+            // Loop pattern toggle mechanism back to action state
+            if (isMultiAnswered) {
+                generateMultiQuestion();
+                return;
+            }
+
+            const inputEl = document.getElementById('multi-user-input');
+            const rawInput = inputEl.value.trim();
+
+            if (!rawInput) { alert('Please enter 6 numbers split by empty space strings.'); return; }
+
+            // Parse entry map strings by grouping array fragments
+            const parsedAnswers = rawInput.split(/\s+/).map(val => parseInt(val, 10));
+
+            if (parsedAnswers.length !== 6 || parsedAnswers.some(isNaN)) {
+                alert('Error: Make sure you provide exactly 6 numeric elements separated by a standard space character.');
+                return;
+            }
+
+            isMultiAnswered = true;
+            inputEl.disabled = true;
+
+            let strictGlobalPass = true;
+            let totalCorrectAnswersCount = 0;
+
+            // Step validations array matrices comparison loops
+            for (let i = 0; i < 6; i++) {
+                const indicators = document.getElementById(`multi-indicator-${i}`);
+                const isTargetCorrect = (parsedAnswers[i] === multiDecimals[i]);
+                
+                updateHistory(multiDecimals[i], isTargetCorrect);
+
+                if (isTargetCorrect) {
+                    indicators.innerText = '✓';
+                    indicators.className = 'multi-feedback-indicator correct';
+                    totalCorrectAnswersCount++;
                 } else {
-                    label.classList.remove('visible');
+                    indicators.innerText = '✗';
+                    indicators.className = 'multi-feedback-indicator incorrect';
+                    strictGlobalPass = false;
                 }
-            });
+            }
+
+            const feedbackBox = document.getElementById('multi-feedback-box');
+            if (strictGlobalPass) {
+                feedbackBox.className = "feedback correct";
+                feedbackBox.innerText = `🎉 Perfect! All 6 rows match exactly!`;
+            } else {
+                feedbackBox.className = "feedback incorrect";
+                feedbackBox.innerText = `Score: ${totalCorrectAnswersCount}/6 correct. Review answers above. Correct sequence: [ ${multiDecimals.join(' ')} ]`;
+            }
+
+            updateStatsTable();
+            btn.innerText = 'Next Challenge';
         }
 
+        // --- SHARED DATA MANAGEMENT LOGISTICS ---
         function updateHistory(val, isCorrect) {
             history.push({ val: val, correct: isCorrect });
-            if (history.length > 100) {
-                history.shift();
-            }
+            if (history.length > 100) history.shift();
 
             for(let i=0; i<32; i++) {
                 stats[i].correctCount = 0;
@@ -356,9 +613,7 @@
 
             history.forEach(round => {
                 stats[round.val].totalCount++;
-                if (round.correct) {
-                    stats[round.val].correctCount++;
-                }
+                if (round.correct) stats[round.val].correctCount++;
             });
         }
 
@@ -381,14 +636,17 @@
             });
         }
 
-        document.getElementById('user-input').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                handleSubmit();
-            }
+        // Dynamic Global Key Listeners Routing Elements
+        document.getElementById('single-user-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') handleSingleSubmit();
         });
 
-        // Bootstrap Game
-        generateQuestion();
+        document.getElementById('multi-user-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') handleMultiSubmit();
+        });
+
+        // Bootstrap Core Engines
+        generateSingleQuestion();
         updateStatsTable();
     </script>
 </body>
